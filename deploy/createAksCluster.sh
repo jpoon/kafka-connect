@@ -32,7 +32,7 @@ az role assignment create --assignee $SERVICE_PRINCIPAL_CLIENT_ID --role Reader 
 
 ## -------
 ## create kubernetes cluster
-az aks create --resource-group=$RESOURCE_GROUP --name=$CLUSTER_NAME --service-principal http://$SERVICE_PRINCIPAL_NAME --client-secret $SERVICE_PRINCIPAL_PASSWORD --generate-ssh-keys
+az aks create --resource-group=$RESOURCE_GROUP --name=$CLUSTER_NAME --service-principal http://$SERVICE_PRINCIPAL_NAME --client-secret $SERVICE_PRINCIPAL_PASSWORD --generate-ssh-keys --disable-rbac
 
 ## -------
 ## Download Kubernetes Credentials
