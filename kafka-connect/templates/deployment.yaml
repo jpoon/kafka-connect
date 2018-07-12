@@ -1,9 +1,9 @@
 {{- $loginModule := "org.apache.kafka.common.security.plain.PlainLoginModule required" -}}
 {{- $loginUsername := "username=\"$$ConnectionString\"" -}}
 {{- $loginPassword := printf "password=\"%s\"" .Values.connect.eventHubConnectionString -}}
-{{- $saslJaasConfig := printf "%s %s %s" $loginModule $loginUsername $loginPassword -}}
+{{- $saslJaasConfig := printf "%s %s %s;" $loginModule $loginUsername $loginPassword -}}
 
-apiVersion: apps/v1beta2
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ template "kafka-connect.fullname" . }}
@@ -79,3 +79,9 @@ spec:
             value: "PLAIN"
           - name: CONNECT_CONSUMER_SASL_JAAS_CONFIG
             value: {{ $saslJaasConfig }}
+          - name: CONNECT_PLUGIN_PATH
+            value: "/usr/share/java"
+          - name: CONNECT_LOG4J_ROOT_LOGLEVEL
+            value: "INFO"
+          - name: CONNECT_LOG4J_LOGGERS
+            value: "org.reflections=ERROR"
