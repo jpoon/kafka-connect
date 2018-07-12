@@ -1,0 +1,81 @@
+{{- $loginModule := "org.apache.kafka.common.security.plain.PlainLoginModule required" -}}
+{{- $loginUsername := "username=\"$$ConnectionString\"" -}}
+{{- $loginPassword := printf "password=\"%s\"" .Values.connect.eventHubConnectionString -}}
+{{- $saslJaasConfig := printf "%s %s %s" $loginModule $loginUsername $loginPassword -}}
+
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "kafka-connect.fullname" . }}
+  labels:
+    app: {{ template "kafka-connect.name" . }}
+    chart: {{ template "kafka-connect.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "kafka-connect.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "kafka-connect.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8083
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+          env:
+          - name: CONNECT_BOOTSTRAP_SERVERS
+            value: "{{ .Values.connect.bootstrapServers }}"
+          - name: CONNECT_GROUP_ID
+            value: "{{ .Values.connect.groupId }}"
+          - name: CONNECT_CONFIG_STORAGE_TOPIC
+            value: "connect-config"
+          - name: CONNECT_OFFSET_STORAGE_TOPIC
+            value: "connect-offset"
+          - name: CONNECT_STATUS_STORAGE_TOPIC
+            value: "connect-status"
+          - name: CONNECT_KEY_CONVERTER
+            value: "org.apache.kafka.connect.json.JsonConverter"
+          - name: CONNECT_VALUE_CONVERTER
+            value: "org.apache.kafka.connect.json.JsonConverter"
+          - name: CONNECT_INTERNAL_KEY_CONVERTER
+            value: "org.apache.kafka.connect.json.JsonConverter"
+          - name: CONNECT_INTERNAL_VALUE_CONVERTER
+            value: "org.apache.kafka.connect.json.JsonConverter"
+          - name: CONNECT_REST_ADVERTISED_HOST_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: CONNECT_SECURITY_PROTOCOL
+            value: "SASL_SSL"
+          - name: CONNECT_SASL_MECHANISM
+            value: "PLAIN"
+          - name: CONNECT_SASL_JAAS_CONFIG
+            value: {{ $saslJaasConfig }}
+          - name: CONNECT_PRODUCER_SECURITY_PROTOCOL
+            value: "SASL_SSL"
+          - name: CONNECT_PRODUCER_SASL_MECHANISM
+            value: "PLAIN"
+          - name: CONNECT_PRODUCER_SASL_JAAS_CONFIG
+            value: {{ $saslJaasConfig }}
+          - name: CONNECT_CONSUMER_SASL_MECHANISM
+            value: "PLAIN"
+          - name: CONNECT_CONSUMER_SASL_JAAS_CONFIG
+            value: {{ $saslJaasConfig }}
