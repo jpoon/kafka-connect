@@ -2,6 +2,7 @@
 {{- $loginUsername := "username=\"$$ConnectionString\"" -}}
 {{- $loginPassword := printf "password=\"%s\"" .Values.connect.eventHubConnectionString -}}
 {{- $saslJaasConfig := printf "%s %s %s;" $loginModule $loginUsername $loginPassword -}}
+{{- $pluginPath := "/usr/share/java" }}
 
 apiVersion: apps/v1
 kind: Deployment
@@ -82,8 +83,25 @@ spec:
           - name: CONNECT_CONSUMER_SASL_JAAS_CONFIG
             value: {{ $saslJaasConfig }}
           - name: CONNECT_PLUGIN_PATH
-            value: "/usr/share/java"
+            value: {{ $pluginPath }}
           - name: CONNECT_LOG4J_ROOT_LOGLEVEL
             value: "INFO"
           - name: CONNECT_LOG4J_LOGGERS
             value: "org.reflections=ERROR"
+          volumeMounts:
+          - name: jdbc-drivers
+            mountPath: {{ $pluginPath }}/kafka-connect-jdbc/drivers
+      initContainers:
+        - name: {{ .Chart.Name }}-init-mysql
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["/bin/sh"]
+          args:
+          - -c
+          - set -x; cd {{ $pluginPath }}/kafka-connect-jdbc/drivers; curl -O https://github.com/jpoon/kafka-connect/raw/master/connector/mysql-connector-java-8.0.11.jar; ls
+          volumeMounts:
+          - name: jdbc-drivers
+            mountPath: {{ $pluginPath }}/kafka-connect-jdbc/drivers
+      volumes:
+      - name: jdbc-drivers
+        emptyDir: {}
