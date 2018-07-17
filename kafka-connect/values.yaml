@@ -3,6 +3,7 @@
 # Declare variables to be passed into your templates.
 
 replicaCount: 1
+restartPolicy: Never
 
 image:
   repository: confluentinc/cp-kafka-connect
