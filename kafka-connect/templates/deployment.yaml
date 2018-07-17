@@ -15,6 +15,7 @@ metadata:
     heritage: {{ .Release.Service }}
 spec:
   replicas: {{ .Values.replicaCount }}
+  restartPolicy: {{ .Values.restartPolicy }}
   selector:
     matchLabels:
       app: {{ template "kafka-connect.name" . }}
@@ -26,7 +27,6 @@ spec:
         release: {{ .Release.Name }}
     spec:
       containers:
-        restartPolicy: {{ .Values.restartPolicy }}
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
