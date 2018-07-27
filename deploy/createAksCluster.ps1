@@ -23,7 +23,6 @@ az group create --name $ResourceGroup --location $Location
 az acr create --resource-group $ResourceGroup --name $AcrName --sku Basic
 $AcrId=$(az acr show --name $AcrName --resource-group $ResourceGroup --query "id" --output tsv)
 $AcrLoginServer=$(az acr show --name $AcrName --query loginServer --output tsv)
-$AcrRegistryId=$(az acr show --name $AcrName --query id --output tsv)
 
 az role assignment create --assignee $ServicePrincipalClientId --role Reader --scope $AcrId
 
